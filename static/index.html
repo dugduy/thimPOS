@@ -1,14 +1,14 @@
 <!DOCTYPE html>
+
 <html lang="vi">
 <head>
 <meta charset="UTF-8">
 <title>ThimPOS - Make Order</title>
 
 <style>
-body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+/* ===== PAGE WRAPPER (IMPORTANT) ===== */
+.page {
     padding: 15px;
-    background-color: #f8f9fa;
 }
 
 /* layout */
@@ -16,10 +16,11 @@ body {
     display: grid;
     grid-template-columns: 1.4fr 1fr;
     gap: 20px;
+    width: 100%;
 }
 
 .box {
-    border: 1px solid #ddd;
+    border: 1px solid #e5e7eb;
     padding: 15px;
     background: white;
     border-radius: 10px;
@@ -156,7 +157,7 @@ button {
 /* TOAST */
 #toast-container {
     position: fixed;
-    top: 10px;
+    top: 70px;
     right: 10px;
     display: flex;
     flex-direction: column;
@@ -182,12 +183,37 @@ button {
     from { transform: translateX(20px); opacity: 0; }
     to   { transform: translateX(0); opacity: 1; }
 }
+
+/* CONFIRM BOX */
+#confirm-box {
+    display:none;
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,0.4);
+    z-index:9999;
+    align-items:center;
+    justify-content:center;
+}
 </style>
+
 </head>
 
 <body>
 
+<div class="page">
+
 <div id="toast-container"></div>
+
+<!-- CONFIRM -->
+<div id="confirm-box">
+    <div style="background:white; padding:20px; border-radius:10px; width:300px;">
+        <div id="confirm-text" style="margin-bottom:15px;"></div>
+        <div style="display:flex; justify-content:flex-end; gap:10px;">
+            <button onclick="confirmNo()">Hủy</button>
+            <button class="btn-danger" onclick="confirmYes()">Xóa</button>
+        </div>
+    </div>
+</div>
 
 <h2>🧾 ThimPOS - Giao diện bán hàng</h2>
 
@@ -197,42 +223,42 @@ button {
         <button onclick="searchProducts()">Tìm kiếm</button>
         <button onclick="loadProducts()">Tất cả</button>
     </div>
-    
-    <div id="categoryBar" class="category-bar">
-        <!-- Categories will be rendered here -->
-    </div>
+
+<div id="categoryBar" class="category-bar"></div>
+
 </div>
 
 <div class="container">
 
-<!-- PRODUCTS -->
 <div class="box">
     <h3 id="displayTitle">📦 Sản phẩm</h3>
     <div id="productList" class="product-grid"></div>
 </div>
 
-<!-- CART -->
 <div class="box">
     <h3>🛒 Đơn hiện tại</h3>
 
-    <table>
-        <thead>
-            <tr>
-                <th>Tên sản phẩm</th>
-                <th style="width: 60px;">SL</th>
-                <th style="text-align: right;">Giá</th>
-                <th></th>
-            </tr>
-        </thead>
-        <tbody id="cart"></tbody>
-    </table>
+<table>
+<thead>
+<tr>
+<th>Tên sản phẩm</th>
+<th style="width: 60px;">SL</th>
+<th style="text-align: right;">Giá</th>
+<th></th>
+</tr>
+</thead>
+<tbody id="cart"></tbody>
+</table>
 
-    <div class="cart-total" id="total">Tổng: 0đ</div>
+<div class="cart-total" id="total">Tổng: 0đ</div>
 
-    <div style="margin-top:20px; display: flex; gap: 10px; justify-content: flex-end;">
-        <button class="btn-danger" onclick="clearCart()">🧹 Xóa hết</button>
-        <button class="btn-primary" onclick="submitOrder()" style="padding: 10px 25px;">💰 THANH TOÁN</button>
-    </div>
+<div style="margin-top:20px; display: flex; gap: 10px; justify-content: flex-end;">
+<button class="btn-danger" onclick="clearCart()">🧹 Xóa hết</button>
+<button class="btn-primary" onclick="submitOrder()" style="padding: 10px 25px;">💰 THANH TOÁN</button>
+</div>
+
+</div>
+
 </div>
 
 </div>
@@ -241,11 +267,27 @@ button {
 const API_PRODUCTS = "/api/products";
 const API_ORDERS = "/api/orders";
 
-let productCache = new Map(); // All fetched products
+let productCache = new Map();
 let cart = new Map();
 let currentCategory = "All";
 
-/* ================= TOAST ================= */
+let confirmCallback = null;
+
+function showConfirm(message, onYes) {
+    document.getElementById("confirm-text").innerText = message;
+    document.getElementById("confirm-box").style.display = "flex";
+    confirmCallback = onYes;
+}
+
+function confirmYes() {
+    document.getElementById("confirm-box").style.display = "none";
+    if (confirmCallback) confirmCallback();
+}
+
+function confirmNo() {
+    document.getElementById("confirm-box").style.display = "none";
+}
+
 function toast(message, type = "info", timeout = 2500) {
     const container = document.getElementById("toast-container");
     const div = document.createElement("div");
@@ -261,18 +303,16 @@ function toast(message, type = "info", timeout = 2500) {
     }, timeout);
 }
 
-/* ================= FETCH ================= */
 async function fetchJSON(url) {
     try {
         const res = await fetch(url);
         if (!res.ok) return null;
         return await res.json();
-    } catch (e) {
+    } catch {
         return null;
     }
 }
 
-/* ================= PRODUCTS & CATEGORIES ================= */
 async function loadProducts() {
     const data = await fetchJSON(`${API_PRODUCTS}?limit=200&offset=0&active_only=true`);
     if (!data) return;
@@ -287,10 +327,8 @@ async function loadProducts() {
 
 function renderCategoryBar() {
     const bar = document.getElementById("categoryBar");
-    
-    // Get unique categories
     const categories = ["All", ...new Set([...productCache.values()].map(p => p.category))];
-    
+
     bar.innerHTML = categories.map(cat => `
         <button class="btn-cat ${currentCategory === cat ? 'active' : ''}" 
                 onclick="filterByCategory('${cat}')">
@@ -301,13 +339,13 @@ function renderCategoryBar() {
 
 function filterByCategory(cat) {
     currentCategory = cat;
-    renderCategoryBar(); // update active state
-    
+    renderCategoryBar();
+
     const allItems = [...productCache.values()];
     const filtered = cat === "All" 
         ? allItems 
         : allItems.filter(p => p.category === cat);
-    
+
     document.getElementById("displayTitle").innerText = `📦 ${cat}`;
     renderProducts(filtered);
 }
@@ -322,11 +360,10 @@ async function searchProducts() {
 
     if (data) {
         renderProducts(data.data);
-        document.getElementById("displayTitle").innerText = `🔍 Kết quả cho: "${q}"`;
+        document.getElementById("displayTitle").innerText = `🔍 Kết quả: "${q}"`;
     }
 }
 
-/* ================= RENDER PRODUCTS ================= */
 function renderProducts(products) {
     const container = document.getElementById("productList");
     container.innerHTML = "";
@@ -336,12 +373,10 @@ function renderProducts(products) {
         div.className = "product-card";
         div.onclick = () => addToCart(p.id);
 
-        const img = p.image_url
-            ? `<img class="product-img" src="${p.image_url}" loading="lazy">`
-            : `<div class="product-img" style="display:flex; align-items:center; justify-content:center; background:#eee; color:#ccc;">No Img</div>`;
-
         div.innerHTML = `
-            ${img}
+            ${p.image_url
+                ? `<img class="product-img" src="${p.image_url}" loading="lazy">`
+                : `<div class="product-img" style="display:flex;align-items:center;justify-content:center;background:#eee;color:#ccc;">No Img</div>`}
             <div class="product-info">
                 <div class="product-cat-tag">${p.category}</div>
                 <div class="product-name">${p.name}</div>
@@ -352,16 +387,12 @@ function renderProducts(products) {
     });
 }
 
-/* ================= CART ================= */
 function addToCart(id) {
     const p = productCache.get(id);
     if (!p) return;
 
-    if (!cart.has(id)) {
-        cart.set(id, { product: p, quantity: 1 });
-    } else {
-        cart.get(id).quantity++;
-    }
+    if (!cart.has(id)) cart.set(id, { product: p, quantity: 1 });
+    else cart.get(id).quantity++;
 
     renderCart();
     toast(`+ ${p.name}`, "success", 1000);
@@ -380,16 +411,16 @@ function renderCart() {
         tr.innerHTML = `
             <td>
                 <div style="font-weight:bold;">${item.product.name}</div>
-                <div style="font-size:11px; color:#888;">ID: ${id}</div>
+                <div style="font-size:11px;color:#888;">ID: ${id}</div>
             </td>
             <td>
-                <input type="number" value="${item.quantity}" min="1" 
-                    style="width:40px; padding:4px;"
+                <input type="number" value="${item.quantity}" min="1"
+                    style="width:40px;padding:4px;"
                     onchange="updateQty(${id}, this.value)">
             </td>
             <td style="text-align:right;">${lineTotal.toLocaleString()}</td>
             <td style="text-align:right;">
-                <button onclick="removeItem(${id})" style="color:red; border:none; background:none;">✕</button>
+                <button onclick="removeItem(${id})" style="color:red;border:none;background:none;">✕</button>
             </td>
         `;
         tbody.appendChild(tr);
@@ -400,7 +431,7 @@ function renderCart() {
 
 function updateQty(id, qty) {
     qty = parseInt(qty);
-    if (qty <= 0) { removeItem(id); return; }
+    if (qty <= 0) return removeItem(id);
     if (cart.has(id)) {
         cart.get(id).quantity = qty;
         renderCart();
@@ -414,14 +445,14 @@ function removeItem(id) {
 
 function clearCart() {
     if(cart.size === 0) return;
-    if(confirm("Bạn có chắc muốn xóa giỏ hàng?")) {
+
+    showConfirm("Bạn có chắc muốn xóa giỏ hàng?", () => {
         cart.clear();
         renderCart();
         toast("Đã xóa giỏ hàng", "info");
-    }
+    });
 }
 
-/* ================= ORDER ================= */
 async function submitOrder() {
     if (cart.size === 0) {
         toast("Vui lòng chọn sản phẩm", "error");
@@ -429,9 +460,7 @@ async function submitOrder() {
     }
 
     const items = [];
-    cart.forEach((v, id) => {
-        items.push({ product_id: id, quantity: v.quantity });
-    });
+    cart.forEach((v, id) => items.push({ product_id: id, quantity: v.quantity }));
 
     try {
         const res = await fetch(API_ORDERS, {
@@ -440,20 +469,20 @@ async function submitOrder() {
             body: JSON.stringify({ items })
         });
 
+        const data = await res.json().catch(() => null);
+
         if (res.ok) {
-            const data = await res.json();
-            toast(`Thành công! Đơn hàng #${data.id}`, "success");
+            toast(`Đơn #${data.id} | ${data.total_price.toLocaleString()}đ`, "success");
             cart.clear();
             renderCart();
         } else {
-            toast("Lỗi khi tạo đơn hàng", "error");
+            toast(data?.error || "Lỗi khi tạo đơn hàng", "error");
         }
-    } catch (e) {
+    } catch {
         toast("Lỗi kết nối server", "error");
     }
 }
 
-/* init */
 loadProducts();
 </script>
 

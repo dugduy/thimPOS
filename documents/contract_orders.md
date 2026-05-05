@@ -103,16 +103,8 @@ created_at   INTEGER
 
 ### Errors
 
-#### 404 Product not found
-
-```json id="0n4v9q"
-{ "error": "PRODUCT_NOT_FOUND" }
-```
-
-#### 400 Invalid quantity
-
 ```json id="8b0eqd"
-{ "error": "INVALID_QUANTITY" }
+{ "error": "msg" }
 ```
 
 ---

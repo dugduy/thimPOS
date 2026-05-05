@@ -5,16 +5,16 @@
 <title>Account Manager</title>
 
 <style>
-body {
+/* ❗ không đụng body */
+.page {
     font-family: system-ui;
-    background: #0f172a;
-    color: #e2e8f0;
-    margin: 0;
+    color: var(--tp-text);
     padding: 20px;
 }
 
+/* panel -> card style */
 .panel {
-    background: #020617;
+    background: var(--tp-panel);
     padding: 14px;
     border-radius: 12px;
     margin-top: 16px;
@@ -34,38 +34,46 @@ button {
     border-radius: 8px;
     border: none;
     cursor: pointer;
-    background: #2563eb;
+    background: var(--tp-active);
     color: white;
 }
+
 button.danger { background: #dc2626; }
 button.gray { background: #475569; }
 
+/* table */
 table {
     width: 100%;
     border-collapse: collapse;
 }
+
 td, th {
     padding: 8px;
     border-bottom: 1px solid #334155;
     text-align: left;
 }
+
 tr:hover { background: #1e293b; }
 
+/* toast */
 #toast {
     position: fixed;
     top: 20px;
     right: 20px;
     z-index: 999;
 }
+
 .toast {
     padding: 10px 14px;
     margin-top: 8px;
     border-radius: 8px;
     background: #1e293b;
 }
+
 .toast.success { border-left: 4px solid #22c55e; }
 .toast.error { border-left: 4px solid #ef4444; }
 
+/* modal */
 #modal {
     position: fixed;
     inset: 0;
@@ -75,23 +83,32 @@ tr:hover { background: #1e293b; }
     justify-content: center;
     z-index: 100;
 }
+
 .modal-box {
-    background: #020617;
+    background: var(--tp-panel);
     padding: 20px;
     border-radius: 12px;
     width: 380px;
     display: flex;
     flex-direction: column;
 }
+
 .modal-box label {
     font-size: 0.85rem;
     margin-top: 8px;
-    color: #94a3b8;
+    color: var(--tp-muted);
+}
+
+/* đồng bộ nền */
+.tp-main {
+    background:#0f172a;
 }
 </style>
 </head>
 
 <body>
+
+<div class="page">
 
 <h1 style="color: #dc2626;">quản lý tài khoản và mật khẩu</h1>
 
@@ -131,6 +148,8 @@ tr:hover { background: #1e293b; }
 <h3>Sessions</h3>
 <button onclick="loadSessions()">Load My Sessions</button>
 <div id="sessions"></div>
+</div>
+
 </div>
 
 <script>
@@ -449,8 +468,8 @@ loadCredentials();
 
 </script>
 
-
 <link rel="stylesheet" href="/thimpos.css">
 <script src="/thimpos.js" defer></script>
+
 </body>
 </html>

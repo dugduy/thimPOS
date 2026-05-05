@@ -5,15 +5,16 @@
 <title>Báo cáo bán hàng</title>
 
 <style>
-body {
+/* ❗ KHÔNG đụng body nữa */
+.page {
     font-family: system-ui;
-    background:#0f1115;
-    color:#eee;
-    padding:20px;
+    color: var(--tp-text);
+    padding: 20px;
 }
 
+/* panel dùng theme */
 .card {
-    background:#1b1e24;
+    background: var(--tp-panel);
     padding:16px;
     border-radius:12px;
     margin-bottom:16px;
@@ -29,18 +30,21 @@ input, button, select {
     padding:8px;
     border-radius:6px;
     border:none;
-    background:#2a2f3a;
-    color:#eee;
+    background:#1f2937;
+    color:var(--tp-text);
 }
 
-button { background:#4f8cff; cursor:pointer; }
+button {
+    background: var(--tp-active);
+    cursor:pointer;
+}
 
 .chart-wrap {
     overflow-x:auto;
 }
 
 canvas {
-    background:#111;
+    background:#020617;
     border-radius:10px;
     display:block;
 }
@@ -57,6 +61,7 @@ canvas {
 
 .table th {
     cursor:pointer;
+    color: var(--tp-muted);
 }
 
 .peaks {
@@ -66,15 +71,22 @@ canvas {
 }
 
 .peak {
-    background:#222733;
+    background:#1f2937;
     padding:10px;
     border-radius:8px;
+}
+
+/* nền đồng bộ toàn bộ khu vực content */
+.tp-main {
+    background:#0f172a;
 }
 </style>
 
 </head>
 
 <body>
+
+<div class="page">
 
 <h1>📊 Báo cáo bán hàng</h1>
 
@@ -128,6 +140,8 @@ canvas {
     </table>
 </div>
 
+</div>
+
 <script>
 let productMap = new Map();
 let sort = { key:"revenue", asc:false };
@@ -143,7 +157,6 @@ function formatMoney(v){
 function applyPreset() {
     const now = new Date();
     let from = new Date();
-
     const p = document.getElementById("preset").value;
 
     if (p==="today") from.setHours(0,0,0,0);
@@ -216,7 +229,6 @@ function drawLineChart(timeline){
 
     if(entries.length < 2) return;
 
-    // width động
     c.width = Math.max(800, entries.length * 80);
 
     let pad=40;
@@ -245,7 +257,7 @@ function drawLineChart(timeline){
 
         let points=[];
 
-        ctx.strokeStyle="#4f8cff";
+        ctx.strokeStyle= getComputedStyle(document.documentElement).getPropertyValue('--tp-active');
         ctx.beginPath();
 
         entries.forEach((e,i)=>{
@@ -263,7 +275,7 @@ function drawLineChart(timeline){
 
         ctx.stroke();
 
-        ctx.fillStyle="#4f8cff";
+        ctx.fillStyle= getComputedStyle(document.documentElement).getPropertyValue('--tp-active');
         points.forEach(p=>{
             ctx.beginPath();
             ctx.arc(p.x,p.y,3,0,Math.PI*2);
@@ -303,7 +315,6 @@ function drawProductChart(){
 
     if(!arr.length) return;
 
-    // width động theo số sản phẩm
     c.width = Math.max(800, arr.length * 100);
 
     let pad=40;
@@ -350,7 +361,7 @@ function drawProductChart(){
 
         bars.forEach(b=>{
             if(mx>=b.bx && mx<=b.bx+b.bw && my>=b.by && my<=b.by+b.bh){
-                ctx.fillStyle="#4f8cff";
+                ctx.fillStyle=getComputedStyle(document.documentElement).getPropertyValue('--tp-active');
                 ctx.fillRect(b.bx,b.by,b.bw,b.bh);
             }
         });
@@ -414,8 +425,8 @@ function renderPeaks(){
 }
 </script>
 
-
 <link rel="stylesheet" href="/thimpos.css">
 <script src="/thimpos.js" defer></script>
+
 </body>
 </html>

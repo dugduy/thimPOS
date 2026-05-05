@@ -1,113 +1,162 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-    <meta charset="UTF-8">
-    <title>ThimPOS - Products</title>
-    <style>
-        body {
-            font-family: Arial;
-            padding: 20px;
-        }
+<meta charset="UTF-8">
+<title>ThimPOS - Products</title>
 
-        .row {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 10px;
-            flex-wrap: wrap;
-        }
+<style>
+.page {
+    font-family: system-ui;
+    color: var(--tp-text);
+    padding: 20px;
+}
 
-        input, button, select {
-            padding: 6px;
-        }
+/* card giống report page */
+.card {
+    background: var(--tp-panel);
+    padding:16px;
+    border-radius:12px;
+    margin-bottom:16px;
+}
 
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-        }
+.row {
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+}
 
-        th, td {
-            border: 1px solid #ccc;
-            padding: 8px;
-            vertical-align: middle;
-        }
+input, button, select {
+    padding:8px;
+    border-radius:6px;
+    border:none;
+    background:#1f2937;
+    color:var(--tp-text);
+}
 
-        tr.inactive {
-            opacity: 0.5;
-        }
+button {
+    background: var(--tp-active);
+    cursor:pointer;
+}
 
-        .thumb {
-            width: 48px;
-            height: 48px;
-            object-fit: cover;
-            border-radius: 6px;
-            background: #eee;
-        }
+/* table chuẩn theme */
+.table {
+    width:100%;
+    border-collapse: collapse;
+}
 
-        .img-input {
-            width: 260px;
-        }
+.table th, .table td {
+    padding:8px;
+    border-bottom:1px solid #333;
+    vertical-align: middle;
+}
 
-        .actions button {
-            margin-right: 5px;
-        }
+.table th {
+    color: var(--tp-muted);
+}
 
-        .url-cell {
-            font-size: 12px;
-            max-width: 220px;
-            word-break: break-all;
-        }
-    </style>
+tr.inactive {
+    opacity: 0.5;
+}
+
+/* ảnh */
+.thumb {
+    width:48px;
+    height:48px;
+    object-fit:cover;
+    border-radius:6px;
+    background:#111827;
+}
+
+.img-input {
+    width:260px;
+}
+
+.actions button {
+    margin-right:5px;
+}
+
+/* url cell */
+.url-cell {
+    font-size:12px;
+    max-width:220px;
+    word-break: break-all;
+}
+
+/* highlight editable */
+[contenteditable="true"] {
+    outline: none;
+    border-bottom: 1px dashed #374151;
+}
+
+/* hover nhẹ cho row */
+.table tr:hover {
+    background: #1f2937;
+}
+
+/* đồng bộ nền */
+.tp-main {
+    background:#0f172a;
+}
+</style>
+
 </head>
+
 <body>
+
+<div class="page">
 
 <h1>📦 Products</h1>
 
-<!-- CREATE -->
-<h3>➕ Tạo sản phẩm</h3>
-<div class="row">
-    <input id="name" placeholder="Tên">
-    <input id="price" type="number" placeholder="Giá">
-    <input id="desc" placeholder="Mô tả">
-    <input id="category" placeholder="Category (drink, food...)">
-    <input id="image_url" class="img-input" placeholder="Image URL (https://...)">
-    <button onclick="createProduct()">Tạo</button>
+<div class="card">
+    <h3>➕ Tạo sản phẩm</h3>
+    <div class="row">
+        <input id="name" placeholder="Tên">
+        <input id="price" type="number" placeholder="Giá">
+        <input id="desc" placeholder="Mô tả">
+        <input id="category" placeholder="Category (drink, food...)">
+        <input id="image_url" class="img-input" placeholder="Image URL (https://...)">
+        <button onclick="createProduct()">Tạo</button>
+    </div>
 </div>
 
-<!-- SEARCH -->
-<h3>🔎 Search</h3>
-<div class="row">
-    <input id="search" placeholder="Từ khóa...">
-    <input id="search_category" placeholder="Category">
-    
-    <select id="search_active">
-        <option value="false">All</option>
-        <option value="true">Only Active</option>
-    </select>
+<div class="card">
+    <h3>🔎 Search</h3>
+    <div class="row">
+        <input id="search" placeholder="Từ khóa...">
+        <input id="search_category" placeholder="Category">
+        
+        <select id="search_active">
+            <option value="false">All</option>
+            <option value="true">Only Active</option>
+        </select>
 
-    <button onclick="searchProducts()">Search</button>
-    <button onclick="loadProducts()">Reset</button>
+        <button onclick="searchProducts()">Search</button>
+        <button onclick="loadProducts()">Reset</button>
+    </div>
 </div>
 
-<!-- LIST -->
-<h3>📋 Danh sách</h3>
-<table>
-    <thead>
-        <tr>
-            <th>ID</th>
-            <th>Ảnh</th>
-            <th>Tên</th>
-            <th>Giá</th>
-            <th>Mô tả</th>
-            <th>Category</th>
-            <th>Image URL</th>
-            <th>Active</th>
-            <th>Action</th>
-        </tr>
-    </thead>
+<div class="card">
+    <h3>📋 Danh sách</h3>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Ảnh</th>
+                <th>Tên</th>
+                <th>Giá</th>
+                <th>Mô tả</th>
+                <th>Category</th>
+                <th>Image URL</th>
+                <th>Active</th>
+                <th>Action</th>
+            </tr>
+        </thead>
 
-    <tbody id="productTable"></tbody>
-</table>
+        <tbody id="productTable"></tbody>
+    </table>
+</div>
+
+</div>
 
 <script>
 const API = "/api/products";
@@ -140,18 +189,12 @@ function render(products) {
 
         tr.innerHTML = `
             <td>${p.id}</td>
-
             <td>${img}</td>
 
             <td contenteditable="true" data-field="name">${p.name}</td>
-
             <td contenteditable="true" data-field="price">${p.price}</td>
-
             <td contenteditable="true" data-field="description">${p.description || ""}</td>
-
-            <td contenteditable="true" data-field="category">
-                ${p.category || ""}
-            </td>
+            <td contenteditable="true" data-field="category">${p.category || ""}</td>
 
             <td class="url-cell" contenteditable="true" data-field="image_url">
                 ${p.image_url || ""}
@@ -173,14 +216,12 @@ function render(products) {
     });
 }
 
-/* LOAD */
 async function loadProducts() {
     const data = await fetchJSON(`${API}?limit=50&offset=0&active_only=false`);
     if (!data) return;
     render(data.data);
 }
 
-/* SEARCH (ENHANCED) */
 async function searchProducts() {
     const q = document.getElementById("search").value;
     const category = document.getElementById("search_category").value;
@@ -195,12 +236,10 @@ async function searchProducts() {
     });
 
     const data = await fetchJSON(`${API}/search?${params.toString()}`);
-
     if (!data) return;
     render(data.data);
 }
 
-/* CREATE */
 async function createProduct() {
     const payload = {
         name: document.getElementById("name").value,
@@ -218,7 +257,6 @@ async function createProduct() {
     if (res) loadProducts();
 }
 
-/* UPDATE */
 async function updateProduct(id, btn) {
     const tr = btn.closest("tr");
 
@@ -239,7 +277,6 @@ async function updateProduct(id, btn) {
     loadProducts();
 }
 
-/* DELETE */
 async function deleteProduct(id) {
     await fetchJSON(`${API}/${id}`, {
         method: "DELETE"
