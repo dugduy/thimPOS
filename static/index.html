@@ -1,22 +1,32 @@
 <!DOCTYPE html>
-
 <html lang="vi">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ThimPOS - Make Order</title>
 
 <style>
 /* ===== PAGE WRAPPER (IMPORTANT) ===== */
 .page {
-    padding: 15px;
+    padding: 10px; /* Giảm padding một chút cho mobile */
+    max-width: 1400px;
+    margin: 0 auto;
 }
 
-/* layout */
+/* layout - MOBILE FIRST APPROACH */
 .container {
-    display: grid;
-    grid-template-columns: 1.4fr 1fr;
-    gap: 20px;
+    display: flex;
+    flex-direction: column; /* Stack dọc trên mobile */
+    gap: 15px;
     width: 100%;
+}
+
+@media (min-width: 992px) {
+    .container {
+        display: grid;
+        grid-template-columns: 1.4fr 1fr; /* Chia cột trên Desktop */
+        gap: 20px;
+    }
 }
 
 .box {
@@ -43,18 +53,24 @@
 .category-bar {
     display: flex;
     gap: 8px;
-    flex-wrap: wrap;
+    overflow-x: auto; /* Cho phép vuốt ngang category trên mobile */
     padding: 5px 0;
+    white-space: nowrap;
+    -webkit-overflow-scrolling: touch;
 }
 
+/* Ẩn scrollbar nhưng vẫn scroll được để giao diện sạch hơn */
+.category-bar::-webkit-scrollbar { display: none; }
+
 .btn-cat {
-    padding: 6px 14px;
+    padding: 8px 16px;
     border: 1px solid #ddd;
     background: white;
     border-radius: 20px;
     cursor: pointer;
     font-size: 13px;
     transition: 0.2s;
+    flex-shrink: 0; /* Không bị co lại trong flex-scroll */
 }
 
 .btn-cat:hover { background: #f0f0f0; }
@@ -69,14 +85,20 @@ input {
     border: 1px solid #ccc;
     border-radius: 4px;
     flex-grow: 1;
+    font-size: 16px; /* Tránh zoom tự động trên iOS */
 }
 
 /* PRODUCT GRID */
 .product-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-    gap: 15px;
-    min-height: 400px;
+    /* Tự động điều chỉnh số cột dựa trên kích thước màn hình */
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); 
+    gap: 10px;
+    min-height: 200px;
+}
+
+@media (min-width: 600px) {
+    .product-grid { gap: 15px; }
 }
 
 .product-card {
@@ -87,6 +109,8 @@ input {
     transition: 0.2s;
     background: white;
     position: relative;
+    display: flex;
+    flex-direction: column;
 }
 
 .product-card:hover {
@@ -96,35 +120,42 @@ input {
 
 .product-img {
     width: 100%;
-    height: 120px;
+    aspect-ratio: 1 / 1; /* Giữ ảnh luôn vuông */
     object-fit: cover;
     background: #fdfdfd;
 }
 
 .product-info {
-    padding: 10px;
+    padding: 8px;
+    flex-grow: 1;
 }
 
 .product-name {
-    font-size: 14px;
+    font-size: 13px;
     font-weight: 600;
-    height: 40px;
+    line-height: 1.3;
+    height: 34px;
     overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
 }
 
 .product-price {
     color: #e53935;
     font-weight: bold;
     margin-top: 5px;
+    font-size: 14px;
 }
 
 .product-cat-tag {
     font-size: 10px;
     color: #888;
     text-transform: uppercase;
+    margin-bottom: 2px;
 }
 
-/* CART */
+/* CART TABLE - Tối ưu cho màn hình hẹp */
 table {
     width: 100%;
     border-collapse: collapse;
@@ -132,8 +163,17 @@ table {
 
 td, th {
     border-bottom: 1px solid #eee;
-    padding: 10px 6px;
+    padding: 10px 4px;
     text-align: left;
+    font-size: 14px;
+}
+
+.cart-qty-input {
+    width: 45px;
+    padding: 6px 4px;
+    text-align: center;
+    border: 1px solid #ddd;
+    border-radius: 4px;
 }
 
 button {
@@ -141,13 +181,14 @@ button {
     cursor: pointer;
     border-radius: 4px;
     border: 1px solid #ddd;
+    touch-action: manipulation; /* Tối ưu phản hồi chạm */
 }
 
 .btn-primary { background: #2ecc71; color: white; border: none; font-weight: bold; }
 .btn-danger { background: #e74c3c; color: white; border: none; }
 
 .cart-total {
-    font-size: 20px;
+    font-size: 18px;
     font-weight: bold;
     margin-top: 15px;
     text-align: right;
@@ -157,22 +198,31 @@ button {
 /* TOAST */
 #toast-container {
     position: fixed;
-    top: 70px;
+    top: 20px; /* Đưa lên cao hơn trên mobile */
     right: 10px;
+    left: 10px; /* Trải rộng trên mobile */
     display: flex;
     flex-direction: column;
+    align-items: flex-end;
     gap: 8px;
     z-index: 9999;
+    pointer-events: none;
+}
+
+@media (min-width: 600px) {
+    #toast-container { left: auto; width: 300px; }
 }
 
 .toast {
-    min-width: 200px;
+    width: 100%;
+    max-width: 300px;
     padding: 12px;
     border-radius: 8px;
     color: white;
     font-size: 14px;
     box-shadow: 0 4px 10px rgba(0,0,0,0.15);
     animation: slideIn 0.2s ease;
+    pointer-events: auto;
 }
 
 .toast.success { background: #2ecc71; }
@@ -180,8 +230,8 @@ button {
 .toast.info { background: #3498db; }
 
 @keyframes slideIn {
-    from { transform: translateX(20px); opacity: 0; }
-    to   { transform: translateX(0); opacity: 1; }
+    from { transform: translateY(-20px); opacity: 0; }
+    to   { transform: translateY(0); opacity: 1; }
 }
 
 /* CONFIRM BOX */
@@ -193,11 +243,11 @@ button {
     z-index:9999;
     align-items:center;
     justify-content:center;
+    padding: 20px;
 }
 </style>
 
 </head>
-
 <body>
 
 <div class="page">
@@ -206,8 +256,8 @@ button {
 
 <!-- CONFIRM -->
 <div id="confirm-box">
-    <div style="background:white; padding:20px; border-radius:10px; width:300px;">
-        <div id="confirm-text" style="margin-bottom:15px;"></div>
+    <div style="background:white; padding:20px; border-radius:10px; width:100%; max-width:350px; box-sizing: border-box;">
+        <div id="confirm-text" style="margin-bottom:15px; font-weight: 500;"></div>
         <div style="display:flex; justify-content:flex-end; gap:10px;">
             <button onclick="confirmNo()">Hủy</button>
             <button class="btn-danger" onclick="confirmYes()">Xóa</button>
@@ -215,64 +265,67 @@ button {
     </div>
 </div>
 
-<h2>🧾 ThimPOS - Giao diện bán hàng</h2>
+<h2 style="margin-top: 0; font-size: 1.5rem;">🧾 ThimPOS</h2>
 
 <div class="control-panel">
     <div class="quick-bar">
-        <input id="search" placeholder="Tìm tên sản phẩm...">
-        <button onclick="searchProducts()">Tìm kiếm</button>
+        <input id="search" type="text" placeholder="Tìm tên sản phẩm...">
+        <button onclick="searchProducts()">Tìm</button>
         <button onclick="loadProducts()">Tất cả</button>
     </div>
 
-<div id="categoryBar" class="category-bar"></div>
-
+    <div id="categoryBar" class="category-bar"></div>
 </div>
 
 <div class="container">
 
-<div class="box">
-    <h3 id="displayTitle">📦 Sản phẩm</h3>
-    <div id="productList" class="product-grid"></div>
-</div>
+    <!-- KHỐI SẢN PHẨM -->
+    <div class="box">
+        <h3 id="displayTitle" style="margin-top:0;">📦 Sản phẩm</h3>
+        <div id="productList" class="product-grid"></div>
+    </div>
 
-<div class="box">
-    <h3>🛒 Đơn hiện tại</h3>
+    <!-- KHỐI GIỎ HÀNG -->
+    <div class="box" style="position: sticky; top: 10px; align-self: start;">
+        <h3 style="margin-top:0;">🛒 Đơn hiện tại</h3>
 
-<table>
-<thead>
-<tr>
-<th>Tên sản phẩm</th>
-<th style="width: 60px;">SL</th>
-<th style="text-align: right;">Giá</th>
-<th></th>
-</tr>
-</thead>
-<tbody id="cart"></tbody>
-</table>
+        <div style="overflow-x: auto;">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Sản phẩm</th>
+                        <th style="width: 50px;">SL</th>
+                        <th style="text-align: right;">Giá</th>
+                        <th style="width: 30px;"></th>
+                    </tr>
+                </thead>
+                <tbody id="cart"></tbody>
+            </table>
+        </div>
 
-<div class="cart-total" id="total">Tổng: 0đ</div>
+        <div class="cart-total" id="total">Tổng: 0đ</div>
 
-<div style="margin-top:20px; display: flex; gap: 10px; justify-content: flex-end;">
-<button class="btn-danger" onclick="clearCart()">🧹 Xóa hết</button>
-<button class="btn-primary" onclick="submitOrder()" style="padding: 10px 25px;">💰 THANH TOÁN</button>
-</div>
-
-</div>
+        <div style="margin-top:20px; display: flex; gap: 10px; justify-content: flex-end;">
+            <button class="btn-danger" onclick="clearCart()">🧹 Xóa</button>
+            <button class="btn-primary" onclick="submitOrder()" style="padding: 10px 20px; flex-grow: 1;">💰 THANH TOÁN</button>
+        </div>
+    </div>
 
 </div>
 
 </div>
 
 <script>
+// --- CONFIG & STATE ---
 const API_PRODUCTS = "/api/products";
 const API_ORDERS = "/api/orders";
 
 let productCache = new Map();
 let cart = new Map();
 let currentCategory = "All";
-
 let confirmCallback = null;
 
+// --- UI HELPERS ---
 function showConfirm(message, onYes) {
     document.getElementById("confirm-text").innerText = message;
     document.getElementById("confirm-box").style.display = "flex";
@@ -297,12 +350,13 @@ function toast(message, type = "info", timeout = 2500) {
 
     setTimeout(() => {
         div.style.opacity = "0";
-        div.style.transform = "translateX(20px)";
+        div.style.transform = "translateY(-10px)";
         div.style.transition = "0.2s";
         setTimeout(() => div.remove(), 200);
     }, timeout);
 }
 
+// --- DATA FETCHING ---
 async function fetchJSON(url) {
     try {
         const res = await fetch(url);
@@ -313,6 +367,7 @@ async function fetchJSON(url) {
     }
 }
 
+// --- PRODUCT LOGIC ---
 async function loadProducts() {
     const data = await fetchJSON(`${API_PRODUCTS}?limit=200&offset=0&active_only=true`);
     if (!data) return;
@@ -375,7 +430,7 @@ function renderProducts(products) {
 
         div.innerHTML = `
             ${p.image_url
-                ? `<img class="product-img" src="${p.image_url}" loading="lazy">`
+                ? `<img class="product-img" src="${p.image_url}" loading="lazy" alt="${p.name}">`
                 : `<div class="product-img" style="display:flex;align-items:center;justify-content:center;background:#eee;color:#ccc;">No Img</div>`}
             <div class="product-info">
                 <div class="product-cat-tag">${p.category}</div>
@@ -387,6 +442,7 @@ function renderProducts(products) {
     });
 }
 
+// --- CART LOGIC ---
 function addToCart(id) {
     const p = productCache.get(id);
     if (!p) return;
@@ -410,28 +466,27 @@ function renderCart() {
         const tr = document.createElement("tr");
         tr.innerHTML = `
             <td>
-                <div style="font-weight:bold;">${item.product.name}</div>
-                <div style="font-size:11px;color:#888;">ID: ${id}</div>
+                <div style="font-weight:bold; line-height:1.2;">${item.product.name}</div>
+                <div style="font-size:10px;color:#888;">ID: ${id}</div>
             </td>
             <td>
-                <input type="number" value="${item.quantity}" min="1"
-                    style="width:40px;padding:4px;"
+                <input type="number" class="cart-qty-input" value="${item.quantity}" min="1"
                     onchange="updateQty(${id}, this.value)">
             </td>
-            <td style="text-align:right;">${lineTotal.toLocaleString()}</td>
+            <td style="text-align:right; font-weight:500;">${lineTotal.toLocaleString()}</td>
             <td style="text-align:right;">
-                <button onclick="removeItem(${id})" style="color:red;border:none;background:none;">✕</button>
+                <button onclick="removeItem(${id})" style="color:#e74c3c;border:none;background:none;font-size:18px;padding:0 5px;">✕</button>
             </td>
         `;
         tbody.appendChild(tr);
     });
 
-    document.getElementById("total").innerText = "Tổng cộng: " + total.toLocaleString() + "đ";
+    document.getElementById("total").innerText = "Tổng: " + total.toLocaleString() + "đ";
 }
 
 function updateQty(id, qty) {
     qty = parseInt(qty);
-    if (qty <= 0) return removeItem(id);
+    if (isNaN(qty) || qty <= 0) return removeItem(id);
     if (cart.has(id)) {
         cart.get(id).quantity = qty;
         renderCart();
@@ -446,16 +501,17 @@ function removeItem(id) {
 function clearCart() {
     if(cart.size === 0) return;
 
-    showConfirm("Bạn có chắc muốn xóa giỏ hàng?", () => {
+    showConfirm("Xóa toàn bộ giỏ hàng?", () => {
         cart.clear();
         renderCart();
-        toast("Đã xóa giỏ hàng", "info");
+        toast("Đã dọn dẹp giỏ hàng", "info");
     });
 }
 
+// --- ORDER SUBMISSION ---
 async function submitOrder() {
     if (cart.size === 0) {
-        toast("Vui lòng chọn sản phẩm", "error");
+        toast("Giỏ hàng đang trống", "error");
         return;
     }
 
@@ -472,18 +528,21 @@ async function submitOrder() {
         const data = await res.json().catch(() => null);
 
         if (res.ok) {
-            toast(`Đơn #${data.id} | ${data.total_price.toLocaleString()}đ`, "success");
+            toast(`Thành công! Đơn #${data.id}`, "success");
             cart.clear();
             renderCart();
         } else {
-            toast(data?.error || "Lỗi khi tạo đơn hàng", "error");
+            toast(data?.error || "Lỗi tạo đơn", "error");
         }
     } catch {
-        toast("Lỗi kết nối server", "error");
+        toast("Mất kết nối server", "error");
     }
 }
 
-loadProducts();
+// --- INIT ---
+document.addEventListener("DOMContentLoaded", () => {
+    loadProducts();
+});
 </script>
 
 <link rel="stylesheet" href="/thimpos.css">

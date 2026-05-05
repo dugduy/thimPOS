@@ -1,3 +1,2 @@
-thêm name trong order-crud (phụ), lỗi rõ ràng hơn
 làm UI mobile friendly
 làm tài liệu hướng dẫn

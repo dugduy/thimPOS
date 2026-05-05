@@ -24,111 +24,92 @@
         }
     ];
 
-    /**
-     * Kiểm tra trạng thái authentication từ server (HttpOnly cookie)
-     */
+    function isMobile() {
+        return window.innerWidth <= 7680;
+    }
+
     async function checkAuth() {
         try {
-            const response = await fetch('/auth/me', { method: 'GET' });
-            if (response.ok) {
-                return await response.json();
-            }
+            const response = await fetch('/auth/me');
+            if (response.ok) return await response.json();
         } catch (e) {
             console.error("Auth check failed", e);
         }
         return { authenticated: false };
     }
 
-    /**
-     * Xử lý đăng xuất qua POST /auth/logout
-     */
     async function handleLogout() {
         try {
-            const response = await fetch('/auth/logout', { 
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' }
-            });
+            const response = await fetch('/auth/logout', { method: 'POST' });
             const result = await response.json();
             if (result.success) {
                 window.location.href = "/auth/login.html";
             }
-        } catch (error) {
-            console.error("Logout failed:", error);
+        } catch (e) {
+            console.error("Logout failed", e);
         }
     }
 
-    /**
-     * Tạo Navbar với cụm nút Auth được thiết kế đẹp hơn
-     */
     function createNavbar(authState) {
         const nav = document.createElement("div");
         nav.className = "tp-navbar";
 
-        // Cụm bên trái: Logo và Tên thương hiệu
         const left = document.createElement("div");
         left.className = "tp-navbar-left";
+
+        const toggleBtn = document.createElement("button");
+        toggleBtn.className = "tp-toggle-btn";
+        toggleBtn.innerHTML = "☰";
+        toggleBtn.onclick = () => {
+            document.body.classList.toggle("tp-sidebar-open");
+        };
 
         const logo = document.createElement("img");
         logo.className = "tp-logo";
         logo.src = "/thimpos.png";
-        logo.alt = "ThimPOS";
 
         const title = document.createElement("span");
         title.className = "tp-navbar-title";
         title.textContent = "ThimPOS";
 
-        left.appendChild(logo);
-        left.appendChild(title);
-        nav.appendChild(left);
+        left.append(toggleBtn, logo, title);
 
-        // Cụm bên phải: Nút Auth
         const right = document.createElement("div");
         right.className = "tp-navbar-right";
 
-        if (authState.authenticated) {
-            // Container thông tin user và nút logout
-            const userContainer = document.createElement("div");
-            userContainer.className = "tp-auth-container";
+        const container = document.createElement("div");
+        container.className = "tp-auth-container";
 
-            const userBadge = document.createElement("span");
-            userBadge.className = "tp-user-badge";
-            userBadge.innerHTML = `<i class="tp-icon-user"></i> ${authState.username}`;
+        if (authState && authState.authenticated) {
+            const user = document.createElement("span");
+            user.className = "tp-user-badge";
+            user.innerHTML = `${authState.username}`;
 
-            const logoutBtn = document.createElement("button");
-            logoutBtn.className = "tp-btn tp-btn-danger";
-            logoutBtn.textContent = "Đăng xuất";
-            logoutBtn.onclick = handleLogout;
+            const logout = document.createElement("button");
+            logout.className = "tp-btn tp-btn-danger";
+            logout.textContent = "Đăng xuất";
+            logout.onclick = handleLogout;
 
-            userContainer.appendChild(userBadge);
-            userContainer.appendChild(logoutBtn);
-            right.appendChild(userContainer);
+            container.append(user, logout);
         } else {
-            // Cụm Login/Signup
-            const authContainer = document.createElement("div");
-            authContainer.className = "tp-auth-container";
+            const login = document.createElement("a");
+            login.className = "tp-btn tp-btn-ghost";
+            login.href = "/auth/login.html";
+            login.textContent = "Đăng nhập";
 
-            const loginLink = document.createElement("a");
-            loginLink.className = "tp-btn tp-btn-ghost";
-            loginLink.href = "/auth/login.html";
-            loginLink.textContent = "Đăng nhập";
+            const signup = document.createElement("a");
+            signup.className = "tp-btn tp-btn-primary";
+            signup.href = "/auth/signup.html";
+            signup.textContent = "Đăng ký";
 
-            const signupLink = document.createElement("a");
-            signupLink.className = "tp-btn tp-btn-primary";
-            signupLink.href = "/auth/signup.html";
-            signupLink.textContent = "Đăng ký";
-
-            authContainer.appendChild(loginLink);
-            authContainer.appendChild(signupLink);
-            right.appendChild(authContainer);
+            container.append(login, signup);
         }
 
-        nav.appendChild(right);
+        right.appendChild(container);
+        nav.append(left, right);
         return nav;
     }
 
-    /**
-     * Tạo Sidebar danh mục
-     */
     function createSidebar() {
         const sidebar = document.createElement("div");
         sidebar.className = "tp-sidebar";
@@ -136,37 +117,45 @@
         const brand = document.createElement("div");
         brand.className = "tp-brand";
         brand.textContent = "ThimPOS";
+
         sidebar.appendChild(brand);
 
         NAV_TREE.forEach(folder => {
-            const folderDiv = document.createElement("div");
-            folderDiv.className = "tp-folder";
+            const box = document.createElement("div");
+            box.className = "tp-folder";
 
             const title = document.createElement("div");
             title.className = "tp-folder-title";
             title.textContent = folder.name;
-            folderDiv.appendChild(title);
+
+            box.appendChild(title);
 
             folder.items.forEach(item => {
                 const a = document.createElement("a");
                 a.className = "tp-link";
-                a.textContent = item.label;
                 a.href = item.href;
+                a.textContent = item.label;
 
                 if (window.location.pathname === item.href) {
                     a.classList.add("active");
                 }
-                folderDiv.appendChild(a);
+                
+                // Close sidebar when clicking a link on mobile
+                a.onclick = () => {
+                    if (isMobile()) {
+                        document.body.classList.remove("tp-sidebar-open");
+                    }
+                };
+
+                box.appendChild(a);
             });
-            sidebar.appendChild(folderDiv);
+
+            sidebar.appendChild(box);
         });
 
         return sidebar;
     }
 
-    /**
-     * Hàm inject layout tổng thể
-     */
     async function injectLayout() {
         const authState = await checkAuth();
         const body = document.body;
@@ -177,21 +166,35 @@
         const main = document.createElement("div");
         main.className = "tp-main";
 
-        // Wrap nội dung cũ của trang vào trong tp-main
+        // Di chuyển content hiện tại vào main
         while (body.firstChild) {
             main.appendChild(body.firstChild);
         }
 
-        body.appendChild(navbar);
-        body.appendChild(sidebar);
-        body.appendChild(main);
-    }
+        const overlay = document.createElement("div");
+        overlay.className = "tp-overlay";
+        overlay.onclick = () => {
+            document.body.classList.remove("tp-sidebar-open");
+        };
 
-    // Check-list:
-    // 1. [x] Đầy đủ hàm logic (checkAuth, handleLogout, createNavbar, createSidebar, injectLayout)
-    // 2. [x] UI cập nhật với các class: tp-btn, tp-btn-primary, tp-btn-ghost, tp-btn-danger
-    // 3. [x] Đã thêm container bao bọc cụm nút để căn chỉnh (tp-auth-container)
-    // 4. [x] Gán đúng endpoint /auth/me và /auth/logout (POST) theo contract
+        body.append(navbar, sidebar, overlay, main);
+
+        // Khởi tạo trạng thái mặc định: Mobile đóng, Desktop mở
+        if (isMobile()) {
+            body.classList.remove("tp-sidebar-open");
+        } else {
+            body.classList.add("tp-sidebar-open");
+        }
+
+        window.addEventListener("resize", () => {
+            if (isMobile()) {
+                body.classList.remove("tp-sidebar-open");
+            } else {
+                // Tự động mở lại khi quay về màn hình desktop (tùy chọn UI)
+                body.classList.add("tp-sidebar-open");
+            }
+        });
+    }
 
     if (document.readyState === "loading") {
         document.addEventListener("DOMContentLoaded", injectLayout);

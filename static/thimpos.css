@@ -1,5 +1,3 @@
-/* ========== ThimPOS Core Layout ========== */
-
 :root {
     --tp-bg: #0f172a;
     --tp-panel: #111827;
@@ -7,57 +5,64 @@
     --tp-active: #2563eb;
     --tp-text: #e5e7eb;
     --tp-muted: #9ca3af;
+    --tp-danger: #ef4444;
 }
 
-/* reset nhẹ */
 body {
     margin: 0;
-    font-family: Arial, sans-serif;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
     display: flex;
     min-height: 100vh;
     background: #f3f4f6;
+    overflow-x: hidden;
 }
 
-/* ========== Sidebar ========== */
+/* ===== SIDEBAR ===== */
 .tp-sidebar {
     width: 260px;
     background: var(--tp-bg);
     color: var(--tp-text);
     padding: 12px;
-    box-sizing: border-box;
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    transform: translateX(-100%);
+    transition: transform 0.25s ease-in-out;
+    z-index: 1001;
+    display: flex;
+    flex-direction: column;
+}
+
+body.tp-sidebar-open .tp-sidebar {
+    transform: translateX(0);
 }
 
 .tp-brand {
     font-weight: bold;
-    font-size: 18px;
-    padding: 10px 12px;
-    margin-bottom: 10px;
+    font-size: 20px;
+    padding: 15px 10px;
     color: white;
-}
-
-/* folder */
-.tp-folder {
-    margin-top: 10px;
+    border-bottom: 1px solid var(--tp-hover);
+    margin-bottom: 10px;
 }
 
 .tp-folder-title {
-    padding: 10px 12px;
+    padding: 15px 10px 5px 10px;
+    font-size: 11px;
     color: var(--tp-muted);
-    font-size: 12px;
     text-transform: uppercase;
-    letter-spacing: 1px;
+    letter-spacing: 0.05em;
 }
 
-/* link */
 .tp-link {
     display: block;
-    padding: 10px 12px;
-    margin: 4px 0;
+    padding: 12px 10px;
     border-radius: 8px;
     color: var(--tp-text);
     text-decoration: none;
-    transition: 0.15s;
     font-size: 14px;
+    transition: background 0.2s;
 }
 
 .tp-link:hover {
@@ -69,125 +74,128 @@ body {
     color: white;
 }
 
-/* ========== Main Content ========== */
-.tp-main {
-    flex: 1;
-    padding: 20px;
-    box-sizing: border-box;
-    overflow-x: auto;
-    margin-top: 56px;
-}
-
-/* ========== Navbar ========== */
+/* ===== NAVBAR ===== */
 .tp-navbar {
     position: fixed;
     top: 0;
-    left: 260px;
+    left: 0;
     right: 0;
     height: 56px;
     background: #0b1220;
     display: flex;
     align-items: center;
+    justify-content: space-between;
     padding: 0 16px;
-    box-sizing: border-box;
-    border-bottom: 1px solid #1f2937;
     z-index: 1000;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
 }
 
-/* left */
 .tp-navbar-left {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 12px;
+}
+
+.tp-toggle-btn {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 22px;
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 4px;
+}
+
+.tp-toggle-btn:hover {
+    background: var(--tp-hover);
 }
 
 .tp-logo {
-    width: 28px;
-    height: 28px;
+    width: 32px;
+    height: 32px;
     object-fit: contain;
-    filter: drop-shadow(0 0 6px rgba(37, 99, 235, 0.6));
 }
 
 .tp-navbar-title {
     color: white;
-    font-weight: bold;
-    letter-spacing: 0.5px;
+    font-weight: 600;
+    font-size: 18px;
 }
 
-/* right (FIX chính) */
-.tp-navbar-right {
-    margin-left: auto;
-    display: flex;
-    align-items: center;
-}
-
-/* auth container */
 .tp-auth-container {
     display: flex;
     align-items: center;
     gap: 10px;
 }
 
-/* username badge */
 .tp-user-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-
-    padding: 6px 12px;
-    border-radius: 999px;
-
-    background: rgba(37, 99, 235, 0.15);
-    color: #60a5fa;
-
-    font-weight: 600;
-    font-size: 13px;
-
-    border: 1px solid rgba(37, 99, 235, 0.4);
-    transition: 0.15s;
+    color: white;
+    font-size: 14px;
+    margin-right: 8px;
 }
 
-.tp-user-badge:hover {
-    background: rgba(37, 99, 235, 0.25);
-}
-
-/* ========== Buttons ========== */
+/* Buttons */
 .tp-btn {
     padding: 6px 12px;
-    border-radius: 8px;
-    font-size: 13px;
+    border-radius: 6px;
+    font-size: 14px;
     text-decoration: none;
-    border: none;
     cursor: pointer;
-    transition: 0.15s;
+    border: none;
+    transition: opacity 0.2s;
 }
 
-/* primary */
-.tp-btn-primary {
-    background: var(--tp-active);
-    color: white;
+.tp-btn:hover {
+    opacity: 0.9;
 }
 
-.tp-btn-primary:hover {
-    background: #1d4ed8;
+.tp-btn-primary { background: var(--tp-active); color: white; }
+.tp-btn-ghost { background: transparent; color: white; border: 1px solid var(--tp-hover); }
+.tp-btn-danger { background: var(--tp-danger); color: white; }
+
+/* ===== MAIN ===== */
+.tp-main {
+    flex: 1;
+    margin-top: 56px;
+    padding: 24px;
+    transition: margin-left 0.25s ease-in-out;
+    width: 100%;
+    box-sizing: border-box;
 }
 
-/* ghost */
-.tp-btn-ghost {
-    background: transparent;
-    color: var(--tp-text);
+@media (min-width: 769px) {
+    body.tp-sidebar-open .tp-main {
+        margin-left: 260px;
+    }
 }
 
-.tp-btn-ghost:hover {
-    background: var(--tp-hover);
+/* ===== OVERLAY ===== */
+.tp-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: none;
+    z-index: 1000;
+    backdrop-filter: blur(2px);
 }
 
-/* danger */
-.tp-btn-danger {
-    background: #dc2626;
-    color: white;
+body.tp-sidebar-open .tp-overlay {
+    display: block;
 }
 
-.tp-btn-danger:hover {
-    background: #b91c1c;
+/* ===== MOBILE ADJUSTMENTS ===== */
+@media (max-width: 768px) {
+    .tp-main {
+        margin-left: 0 !important;
+        padding: 16px;
+    }
+    
+    .tp-navbar-title {
+        font-size: 16px;
+    }
+
+    /* Đảm bảo overlay bao phủ toàn bộ khi ở mobile */
+    body.tp-sidebar-open {
+        overflow: hidden;
+    }
 }
